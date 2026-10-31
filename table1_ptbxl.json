@@ -1,0 +1,82 @@
+[
+  {
+    "TabPFN-2.5": "Frozen",
+    "Encoder": "E1",
+    "MAE": "7.351",
+    "Abs. reduction": "\u2014",
+    "Improvement": "\u2014",
+    "seeds": 5
+  },
+  {
+    "TabPFN-2.5": "Frozen",
+    "Encoder": "E2",
+    "MAE": "7.280",
+    "Abs. reduction": "0.071",
+    "Improvement": "1.0%",
+    "seeds": 5
+  },
+  {
+    "TabPFN-2.5": "Uniform fine-tuning",
+    "Encoder": "E1",
+    "MAE": "7.257",
+    "Abs. reduction": "0.095",
+    "Improvement": "1.3%",
+    "seeds": 5
+  },
+  {
+    "TabPFN-2.5": "Uniform fine-tuning",
+    "Encoder": "E2",
+    "MAE": "7.195",
+    "Abs. reduction": "0.157",
+    "Improvement": "2.1%",
+    "seeds": 5
+  },
+  {
+    "TabPFN-2.5": "Gaussian fine-tuning",
+    "Encoder": "E1",
+    "MAE": "6.971",
+    "Abs. reduction": "0.380",
+    "Improvement": "5.2%",
+    "seeds": 5
+  },
+  {
+    "TabPFN-2.5": "Gaussian fine-tuning",
+    "Encoder": "E2",
+    "MAE": "6.872",
+    "Abs. reduction": "0.479",
+    "Improvement": "6.5%",
+    "seeds": 5
+  },
+  {
+    "TabPFN-2.5": "Gaussian fine-tuning",
+    "Encoder": "E2.1",
+    "MAE": "7.018",
+    "Abs. reduction": "0.333",
+    "Improvement": "4.5%",
+    "seeds": 5
+  },
+  {
+    "TabPFN-2.5": "Gaussian + Uniform fine-tuning",
+    "Encoder": "E1",
+    "MAE": "7.105",
+    "Abs. reduction": "0.247",
+    "Improvement": "3.4%",
+    "seeds": 5
+  },
+  {
+    "TabPFN-2.5": "Gaussian + Uniform fine-tuning",
+    "Encoder": "E2",
+    "MAE": "7.033",
+    "Abs. reduction": "0.318",
+    "Improvement": "4.3%",
+    "seeds": 5
+  },
+  {
+    "TabPFN-2.5": "Gaussian + Uniform fine-tuning",
+    "Encoder": "E2.2",
+    "MAE": "7.182",
+    "Abs. reduction": "0.170",
+    "Improvement": "2.3%",
+    "seeds": 5
+  }
+]

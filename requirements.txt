@@ -1,0 +1,17 @@
+# Core. Versions are the ones these results were produced with; the TabICL pin
+# matters because 2.2.0 is the first release shipping both tabicl/prior/ (the SCM
+# dataset generators) and tabicl/train/ (the pre-training CLI). The prior-level
+# experiment is not runnable without them.
+torch>=2.1
+numpy
+pandas
+scikit-learn
+scipy
+matplotlib
+tqdm
+
+tabicl==2.2.0
+tabpfn
+
+# Baselines and metrics.
+lightgbm

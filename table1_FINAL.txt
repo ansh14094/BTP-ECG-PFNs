@@ -1,0 +1,17 @@
+
+Table 1 — PTB-XL: cumulative effect of the two improvements (balanced evaluation, val-selected LR)
+
+TabPFN-2.5                      EncoderMAE      Abs. reductionImprovement   seeds  
+---------------------------------------------------------------------------------
+Frozen                          E1     7.351    —           —             5      
+Frozen                          E2     7.280    0.071       1.0%          5      
+Uniform fine-tuning             E1     7.257    0.095       1.3%          5      
+Uniform fine-tuning             E2     7.195    0.157       2.1%          5      
+Gaussian fine-tuning            E1     6.971    0.380       5.2%          5      
+Gaussian fine-tuning            E2     6.872    0.479       6.5%          5      
+Gaussian fine-tuning            E2.1   7.018    0.333       4.5%          5      
+Gaussian + Uniform fine-tuning  E1     7.105    0.247       3.4%          5      
+Gaussian + Uniform fine-tuning  E2     7.033    0.318       4.3%          5      
+Gaussian + Uniform fine-tuning  E2.2   7.182    0.170       2.3%          5      
+
+10/10 cells complete; TABLE COMPLETE

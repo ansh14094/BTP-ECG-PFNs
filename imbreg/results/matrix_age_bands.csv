@@ -1,0 +1,35 @@
+BLOCK A - encoder axis. Prediction body is stock TabICL in every row;
+only the model the ECG encoder was trained through changes.
+Encoder,Encoder trained through,Age < 30 MAE,Age 30-60 MAE,Age >= 60 MAE,Overall MAE
+E1,none (supervised L1 age loss),7.394,5.942,8.734,7.330
+E2,frozen stock TabPFN-2.5,7.219,5.905,8.682,7.258
+E3,frozen stock TabICL,7.047,5.874,8.533,7.152
+E4,frozen Gaussian-prior TabICL (3000 steps),7.460,5.980,8.796,7.384
+E5,frozen mixed-prior TabICL (3000 steps),7.218,5.892,8.633,7.234
+
+BLOCK B - full matrix. Every encoder under every prediction body, zero-shot.
+No body has ever seen PTB-XL.
+Encoder,Encoder trained through,Prediction body,Age < 30 MAE,Age 30-60 MAE,Age >= 60 MAE,Overall MAE
+E1,none (supervised L1 age loss),Stock TabICL,7.394,5.942,8.734,7.330
+E1,none (supervised L1 age loss),Uniform-prior TabICL (control, 3000 steps),7.361,5.949,8.703,7.314
+E1,none (supervised L1 age loss),Gaussian-prior TabICL (3000 steps),7.208,6.235,8.097,7.162
+E1,none (supervised L1 age loss),Mixed-prior TabICL (3000 steps),7.456,5.895,8.756,7.333
+E2,frozen stock TabPFN-2.5,Stock TabICL,7.219,5.905,8.682,7.258
+E2,frozen stock TabPFN-2.5,Uniform-prior TabICL (control, 3000 steps),7.183,5.915,8.651,7.242
+E2,frozen stock TabPFN-2.5,Gaussian-prior TabICL (3000 steps),7.006,6.177,8.130,7.108
+E2,frozen stock TabPFN-2.5,Mixed-prior TabICL (3000 steps),7.255,5.875,8.681,7.253
+E3,frozen stock TabICL,Stock TabICL,7.047,5.874,8.533,7.152
+E3,frozen stock TabICL,Uniform-prior TabICL (control, 3000 steps),7.005,5.883,8.510,7.137
+E3,frozen stock TabICL,Gaussian-prior TabICL (3000 steps),7.087,6.185,7.905,7.042
+E3,frozen stock TabICL,Mixed-prior TabICL (3000 steps),7.102,5.844,8.531,7.150
+E4,frozen Gaussian-prior TabICL (3000 steps),Stock TabICL,7.460,5.980,8.796,7.384
+E4,frozen Gaussian-prior TabICL (3000 steps),Uniform-prior TabICL (control, 3000 steps),7.418,5.989,8.773,7.369
+E4,frozen Gaussian-prior TabICL (3000 steps),Gaussian-prior TabICL (3000 steps),7.818,6.127,8.466,7.392
+E4,frozen Gaussian-prior TabICL (3000 steps),Mixed-prior TabICL (3000 steps),7.453,5.945,8.795,7.368
+E5,frozen mixed-prior TabICL (3000 steps),Stock TabICL,7.218,5.892,8.633,7.234
+E5,frozen mixed-prior TabICL (3000 steps),Uniform-prior TabICL (control, 3000 steps),7.184,5.899,8.610,7.220
+E5,frozen mixed-prior TabICL (3000 steps),Gaussian-prior TabICL (3000 steps),7.512,6.000,8.317,7.217
+E5,frozen mixed-prior TabICL (3000 steps),Mixed-prior TabICL (3000 steps),7.243,5.867,8.617,7.223
+
+Test set: PTB-XL, DIR-rebalanced, 1499 patients per seed (320 age<30 / 600 age 30-60 / 579 age>=60), 5 seeds pooled.
+Age exactly 60 is counted in the >=60 band. Lower MAE is better.

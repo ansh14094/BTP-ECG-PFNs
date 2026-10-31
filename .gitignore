@@ -1,0 +1,50 @@
+# Virtualenv and caches -- recreate with requirements.txt, never version.
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Model checkpoints. Each TabICL prior checkpoint is 218 MB, over GitHub's
+# 100 MB per-file limit. Regenerate with tabicl_prior/train_gauss_prior.py,
+# or attach step-3000.ckpt to a release if they need to be shared.
+*.ckpt
+*.pt
+*.pth
+*.pth.tar
+tabicl_prior/runs/
+checkpoint_full/
+checkpoint_smoketest/
+
+# Datasets and derived arrays -- obtained from their original sources, not ours
+# to redistribute (PTB-XL is PhysioNet, AgeDB is licence-restricted).
+*.npz
+*.npy
+*.hea
+*.dat
+data/
+agedb_tabpfn/results/
+ecg_tabpfn/results/
+
+# Vendored upstream source and its bundled weights.
+third_party/
+
+# Run coordination: lock files and completion sentinels are machine state.
+*.lock
+.gpu.lock
+.*_done
+
+# Raw run logs: large, machine-specific, and the findings are written up in the
+# markdown logs instead.
+logs_*.log
+logs/
+
+# Completion sentinels written by the shell drivers (both spellings).
+.done_*
+*/.done_*
+
+# Auto-downloaded benchmark data. Fetched on first run from UCI; not ours to
+# redistribute, and reproducible without it.
+imbreg/data_cache/
+
+# Pipeline logs superseded by the markdown write-ups.
+pipeline.log*
