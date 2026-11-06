@@ -47,7 +47,7 @@ CKPT_V25 = "tabpfn-v2.5-regressor-v2.5_default.ckpt"
 # positional context/query cut was made to land on a Gaussian-weighted context
 # (`gauss`) or on an unbiased permutation (`uniform`). See tabicl_prior/.
 PRIOR_CKPT = {m: os.path.join(HERE, os.pardir, "tabicl_prior", "runs", m, "step-3000.ckpt")
-              for m in ("uniform", "gauss", "mixed")}
+              for m in ("uniform", "gauss", "mixed", "target_balanced")}
 
 
 def prep_frame(df: pd.DataFrame, cat_features: list[str]) -> pd.DataFrame:
@@ -501,7 +501,11 @@ def main():
             # summary metrics.
             pred_dir = os.path.join(HERE, "results", "preds")
             os.makedirs(pred_dir, exist_ok=True)
-            pd.DataFrame({"y_true": yte, "y_pred": pred}).to_csv(
+            # `id` is the row's index into the dataset as loaded, so a prediction can
+            # be traced back to the record it came from -- needed to check whether a
+            # test row was in the encoder's own training split (see results/STATUS.md).
+            pd.DataFrame({"id": np.asarray(te), "y_true": yte, "y_pred": pred,
+                          "split": "test"}).to_csv(
                 os.path.join(pred_dir,
                              f"{ds.name}_{args.tag}_{args.protocol}_{arm}_s{seed}.csv"),
                 index=False)

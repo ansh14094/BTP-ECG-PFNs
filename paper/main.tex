@@ -1,0 +1,162 @@
+% TODO: venue template. No .cls or .sty was present in the repository, so this is a
+% generic two-column article sized to the 4-page limit (excluding references).
+% Swap \documentclass and the geometry block for the venue's style file when it
+% arrives; nothing below depends on them.
+\documentclass[10pt,twocolumn]{article}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{booktabs,graphicx,amsmath,amssymb,microtype}
+\usepackage[hidelinks]{hyperref}
+\usepackage[font=small,skip=3pt]{caption}
+\setlength{\abovedisplayskip}{4pt}
+\setlength{\belowdisplayskip}{4pt}
+
+\title{\vspace{-1.2em}Gaussian context sampling for imbalanced regression\\
+       with tabular in-context learners}
+\author{TODO: authors, affiliation}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+% TODO: write last, from paper/RESULTS_SUMMARY.md. One sentence each:
+% (i) tabular in-context learners draw their context uniformly;
+% (ii) we re-weight that context by a Gaussian over the target;
+% (iii) what it does -- state the trade-off, not only the wins;
+% (iv) the scope it holds in.
+\end{abstract}
+
+\section{Introduction}
+% ~0.6 page.
+% - Imbalanced regression: rare target regions are predicted poorly, and the usual
+%   remedies (LDS/FDS, RankSim, ConR) re-weight the LOSS during training.
+% - Tabular in-context learners (TabPFN-2.5, TabICL) make a prediction by
+%   conditioning on a context set rather than by fitting weights, which exposes a
+%   lever none of those methods have: WHICH rows enter the context.
+% - That context is normally sampled uniformly. Nothing requires it to be.
+% - Contributions:
+%   (1) a Gaussian context-sampling scheme with a centre and width redrawn per
+%       episode;
+%   (2) applied at two levels -- per-dataset fine-tuning, and continued
+%       pre-training on the model's own synthetic prior, which is dataset
+%       independent;
+%   (3) an encoder trained end-to-end through a frozen in-context model, for ECG
+%       age regression;
+%   (4) a controlled evaluation: every arm is matched against a uniform control
+%       with identical cost, and against an inverse-density context baseline.
+
+\section{Method}
+% ~0.7 page.
+\subsection{Context and query sampling}
+% - Define context vs query. Queries are drawn FIRST and left unweighted, so the
+%   evaluation distribution is unchanged by the intervention.
+Each episode draws a centre and a width,
+\begin{equation}
+\mu = Q_y(u),\quad u \sim U(0.05, 0.95), \qquad
+\sigma = \mathrm{sd}(y)\, e^{v},\quad v \sim U(\log 0.15, \log 1.5),
+\end{equation}
+and weights each candidate context row by
+$w_i \propto \exp\!\big(-\tfrac12((y_i-\mu)/\sigma)^2\big)$.
+% - Selection is Gumbel-top-$k$ in log space: the Gaussian weights underflow to
+%   exactly zero several sigma out, which is precisely the regime of interest.
+% - Redrawing $(\mu,\sigma)$ every episode means the model sees a FAMILY of skews
+%   rather than one fixed one.
+
+\subsection{Two regimes}
+% - Per-dataset fine-tuning: the context is Gaussian-sampled while fine-tuning on
+%   the target dataset.
+% - Prior-level continued pre-training: TabICL is given 3000 further steps on its
+%   OWN synthetic prior, with rows reordered so the positional context/query cut
+%   falls on a target-concentrated context. The resulting model has never seen any
+%   evaluation dataset. TabPFN-2.5 cannot be tested this way -- the checkpoint
+%   ships, the prior generator does not.
+% - Controls: `uniform' performs a permutation of identical shape and cost, and
+%   `target-balanced' samples with probability inverse to target-bin frequency.
+
+\subsection{ECG encoder}
+% - A ResNet1d-Wang is trained so that a FROZEN in-context model predicts age well
+%   from its features; gradients reach the encoder through the frozen body.
+% - E1 supervised L1; E2 through TabPFN; E3 through stock TabICL; E4 through
+%   Gaussian-prior TabICL. All share one warm start, so differences isolate the body.
+
+\section{Experiments}
+% ~2.3 pages.
+\subsection{Setup}
+% - Datasets: Abalone, Communities and Crime, Wine Quality White, PTB-XL age.
+% - Shot regions follow Yang et al. (2021): many >100, few <20 training rows per bin.
+% - PTB-XL age bands: <30, 30--60, >=60. Five seeds everywhere; mean +- sd reported.
+% - PTB-XL uses the OFFICIAL partition. State plainly why: the balanced-resample
+%   protocol draws its test set from all records, and every encoder here was fitted
+%   on the official train split, so ~80\% of that test set is data the encoder has
+%   already seen. See the limitations paragraph.
+
+\begin{table}[t]\centering\small
+\caption{TabICL, synthetic-prior continued pre-training only. No model has seen any
+evaluation dataset. Mean $\pm$ sd over 5 seeds; lower is better.}
+\label{tab:1a}
+\input{tables/table1a}
+\end{table}
+
+\begin{table}[t]\centering\small
+\caption{TabPFN-2.5, per-dataset fine-tuning. Learning rate selected on validation.}
+\label{tab:1b}
+\input{tables/table1b}
+\end{table}
+
+\begin{table*}[t]\centering\small
+\caption{PTB-XL age prediction, mean absolute error in years, on the official test
+split. Band-macro is the unweighted mean of the three band errors.}
+\label{tab:2}
+\input{tables/table2}
+\end{table*}
+
+\begin{table}[t]\centering\small
+\caption{Encoder training against prediction head. The gap between the two column
+groups is the contamination in the balanced protocol, not a property of the method.}
+\label{tab:3}
+\input{tables/table3}
+\end{table}
+
+\begin{figure}[t]\centering
+\includegraphics[width=\columnwidth]{figs/fig1_method.pdf}
+\caption{Context rows are weighted by a Gaussian over the target, with centre and
+width redrawn each episode; queries stay uniform.}
+\label{fig:1}
+\end{figure}
+
+\begin{figure}[t]\centering
+\includegraphics[width=\columnwidth]{figs/fig2_pred_vs_true.pdf}
+\caption{Binned predictions against truth, $\pm1$ sd. TODO: state in the caption
+which arms and whether predictions are seed-averaged.}
+\label{fig:2}
+\end{figure}
+
+\subsection{Results}
+% - Table~\ref{tab:1a}: prior-level arms against their matched uniform control.
+% - Table~\ref{tab:1b}: per-dataset fine-tuning.
+% - Table~\ref{tab:2}: PTB-XL, against the ResNet baselines.
+% - Table~\ref{tab:3}: encoder x head.
+% - Significance: paired bootstrap CIs and per-seed win counts from
+%   imbreg/results/metrics/significance.csv. Quote intervals, not just means.
+
+\subsection{The trade-off}
+% REQUIRED paragraph -- do not soften it. Gaussian context sampling moves error
+% rather than removing it: the frequent region and the 30--60 band get WORSE in
+% every configuration measured. Report the sign and size of that loss next to every
+% gain, and say under which evaluation weighting the net is positive.
+
+\section{Conclusion and limitations}
+% ~0.2 page.
+% - What holds, and in what scope.
+% - Limitations to state explicitly:
+%   (i) the prior-level result does not transfer to the tabular benchmarks;
+%   (ii) the balanced protocol re-uses encoder training data, so Table~\ref{tab:3}'s
+%        balanced columns are optimistic;
+%   (iii) the encoders stopped improving after a few hundred steps, so they are not
+%        converged;
+%   (iv) single ECG dataset; no claim beyond it.
+
+\bibliographystyle{plain}
+% TODO: references -- Yang et al. 2021 (DIR), Hollmann et al. (TabPFN),
+% TabICL, Ribeiro & Moniz 2020 (SERA), RankSim, ConR.
+\end{document}

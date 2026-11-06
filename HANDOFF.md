@@ -1,0 +1,125 @@
+# Handoff — state of the work
+
+Written for whoever resumes this project, including the author after a gap.
+Last updated 6 November 2026.
+
+A snapshot of a moving system: check it against the sentinels and logs described in
+section 3 before trusting it.
+
+---
+
+## 1. Where the work stands
+
+The method is implemented at both levels, four prior arms are defined, the whole
+evaluation and reporting pipeline exists, and the paper compiles. What is outstanding
+is **compute**, not code: a round of runs on the clean split, triggered by the data-
+hygiene failure described below.
+
+### Complete
+
+- Gaussian context sampling at dataset level (`imbreg/biased_split.py`) and prior
+  level (`tabicl_prior/gauss_prior.py`).
+- Prior checkpoints trained to 3000 steps: `uniform`, `gauss`, `mixed`.
+- The encoder × body matrix under the `dir` protocol — **superseded, see below**.
+- The reporting pipeline end to end: `eval/compute_metrics.py` →
+  `significance.py` → `make_tables.py` / `make_figures.py` / `make_summary.py`.
+- `paper/main.tex` compiles to 2 pages with both figures and all four tables.
+- Documentation: `CODE_MAP.md`, `README.md`, `imbreg/results/REPO_MAP.md`,
+  `imbreg/results/STATUS.md`.
+
+### Why there is another round of runs
+
+The `dir` protocol leaks on PTB-XL. It resamples all 9483 records into a balanced
+test set, but every encoder was fitted on the official 7566-row train split — so
+80–82% of that test set is data the encoder saw. Seen records score 0.66–0.74 years
+better than unseen ones; the Gaussian effect being measured is 0.095 years.
+
+That triggered the stop rule in `paper_completion_plan.md`. Every PTB-XL result is
+being regenerated on the official `fixed` split. The `dir` numbers are kept and
+labelled, not discarded. Full audit: `imbreg/results/STATUS.md` section 1.3.
+
+A second correction, `STATUS.md` section 2.1: three reference values in the
+completion plan were attributed to the prior-level experiment but reproduce exactly
+from the **dataset-level** fine-tuning run. The real prior-level few-shot numbers go
+the other way on all three tabular datasets. Any novelty claim must say which level
+it is about.
+
+## 2. What was running
+
+An ordered chain, `./run_all.sh`, so jobs cannot race for the shared GPU. It holds
+`.runall.lock`; each stage holds its own lock and writes its own sentinel, so the
+chain is safe to re-run — finished stages return immediately.
+
+| | stage | script | unblocks | sentinel |
+|---|---|---|---|---|
+| 0 | `target_balanced` prior training, 3000 steps | `run_prior_target_balanced.sh` | stage 3 | `.priortb_done` |
+| 1 | Task C — PTB-XL matrix on the official split | `run_taskC_clean.sh` | Tables 2 and 3 | `.taskc_done` |
+| 2 | Task A — ResNet baselines, 2 arms × 5 seeds, 90 epochs | `run_task_a.sh` | Table 2 rows 1–2 | `.taska_done` |
+| 3 | Task B1 — `target_balanced` arm on every dataset | `run_taskB1_eval.sh` | Table 1a | `.taskb1_done` |
+
+Stage 0 runs alongside the chain and stage 3 skips itself if
+`tabicl_prior/runs/target_balanced/step-3000.ckpt` is absent, so the two cannot
+deadlock — but stage 3 must be re-run after the checkpoint lands if it skipped.
+
+As of the last check: prior training at step ~806/3000; stage 1 queued behind it on
+the GPU mutex; no sentinel written yet.
+
+## 3. How to find out the real state
+
+```bash
+cd "<repo root>"
+
+ls -la .priortb_done .taskc_done .taska_done .taskb1_done   # which stages finished
+ls tabicl_prior/runs/*/step-3000.ckpt                        # which priors exist
+grep -av $'\r' logs_runall.log | tail -20                    # chain progress
+tail -c 2000 logs_priortb.log                                # prior training step
+nvidia-smi                                                   # who holds the GPU
+ls imbreg/results/preds/ | grep -c clean_matrix              # clean-split cells done
+grep -c TODO paper/tables/*.tex                              # table cells still missing
+```
+
+`.lock` files are machine state and gitignored; a lock with no live process behind it
+is stale and harmless, since `flock` releases on process exit.
+
+## 4. Resuming
+
+1. **Restart the chain.** `./run_all.sh` — finished stages return immediately. If
+   stage 0's checkpoint landed after stage 3 skipped, run `./run_taskB1_eval.sh`
+   again; it is idempotent.
+2. **Check Task A's pace early.** Ten ResNet runs at 90 epochs is the longest item in
+   the chain. `TASKA_EPOCHS=<n> ./run_task_a.sh` cuts the budget if it is too slow —
+   but then say so wherever the numbers are reported, because the reference run it is
+   being compared against used 90 epochs and reported test L1 7.5485.
+3. **Regenerate everything downstream** once runs land:
+   ```bash
+   python3 eval/compute_metrics.py
+   python3 eval/significance.py
+   python3 eval/make_tables.py && python3 eval/make_figures.py && python3 eval/make_summary.py
+   cd paper && pdflatex main.tex
+   ```
+4. **Check the TODOs are gone.** `grep TODO paper/tables/*.tex` must come back empty
+   before the tables are final; a `TODO` marks a cell whose run has not landed.
+5. **Update `STATUS.md` section 3** with what completed.
+
+## 5. Still outstanding after the chain
+
+- **Task B2** — per-dataset `target_balanced` TabPFN on abalone. Conditional on B1
+  finishing by day 5, per the plan's stop rule.
+- **Re-check the clean numbers against the `dir` ones.** The leak predicts the clean
+  PTB-XL errors will be *worse* by roughly 0.66–0.74 years. If they are not, the leak
+  analysis itself needs re-examining.
+- **E5 has no row in the paper's tables**; it is reported in `STATUS.md` only.
+- **`imbreg/results/STATUS.md` section 5** lists the remaining known gaps.
+
+## 6. Working constraints
+
+- **One GPU job at a time.** The workstation GPU is shared with another user and is
+  usually near capacity. Source `gpu_lock.sh` and call `gpu_lock` before any GPU
+  work.
+- **Never kill a job by `pgrep -f <pattern>`.** Kill by PID. The pattern matches the
+  waiting shell and any diagnostic command mentioning the script; it cost 14 hours on
+  2026-10-30.
+- **Long jobs must survive a disconnected session** — run them detached, with output
+  to a log file, and track them by sentinel rather than by terminal attachment.
+- **Trust checkpoints, not exit codes.** The prior trainer has exited 0 after a failed
+  run; `run_prior_target_balanced.sh` checks for `step-3000.ckpt` instead.

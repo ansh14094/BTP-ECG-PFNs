@@ -1,0 +1,2 @@
+dataset,tag,protocol,arm,seed,eval_set,n,mae,gm,rmse,n_many,mae_many,n_medium,mae_medium,n_few,mae_few,has_id,n_young,mae_young,n_middle,mae_middle,n_old,mae_old,band_macro
+ptbxl_resnet,taskA_probe,fixed,vanilla,0,natural,954,7.548485893873298,4.904061666638231,9.628401259277831,,,,,,,True,125.0,9.455871353149414,526.0,6.293548979233426,303.0,8.940148054569862,8.229856128984233

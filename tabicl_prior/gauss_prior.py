@@ -139,6 +139,48 @@ def mixed_row_order(y: torch.Tensor, train_size: int, gen: torch.Generator) -> t
     n_u = min(train_size - n_g, rest.numel())
     return torch.cat([g_sel, rest[:n_u], rest[n_u:]])
 
+# Task B: inverse-density context sampling, the "is Gaussian doing anything a plain
+# balancing scheme would not?" control. 50 equal-width bins because the Gaussian
+# sampler is continuous and supplies no binning of its own.
+TARGET_BALANCED_BINS = 50
+
+
+def target_balanced_row_order(y: torch.Tensor, train_size: int, gen: torch.Generator) -> torch.Tensor:
+    """Permutation whose context is sampled with probability proportional to 1/bin count.
+
+    Where `gauss` concentrates the context on ONE drawn region of target space, this
+    flattens it across the whole range: rare targets are up-weighted by exactly the
+    factor by which they are rare. It is the natural "just balance it" baseline, and
+    separating the two is the point of Task B -- a win for `gauss` only counts if it
+    beats this, not merely the uniform control.
+
+    Weights are built in log space and sampled with the same Gumbel-top-k routine the
+    other modes use, so the three differ in the weighting rule alone.
+    """
+    n = y.numel()
+    if train_size <= 0 or train_size >= n:
+        return torch.randperm(n, generator=gen)
+
+    yf = y.float()
+    lo, hi = float(yf.min()), float(yf.max())
+    if not np.isfinite(lo) or not np.isfinite(hi) or hi - lo < 1e-12:
+        return torch.randperm(n, generator=gen)
+
+    # Right edge nudged so the maximum lands in the last bin rather than past it.
+    edges = torch.linspace(lo, hi + 1e-6 * (hi - lo), TARGET_BALANCED_BINS + 1)
+    b = torch.clamp(torch.bucketize(yf, edges) - 1, 0, TARGET_BALANCED_BINS - 1)
+    counts = torch.bincount(b, minlength=TARGET_BALANCED_BINS).float()
+
+    # log(1/count) = -log(count). Empty bins hold no rows, so they are never indexed.
+    log_w = -torch.log(counts.clamp_min(1.0))[b]
+
+    ctx = _gumbel_top_k(log_w, train_size, gen)
+    mask = torch.ones(n, dtype=torch.bool)
+    mask[ctx] = False
+    rest = torch.nonzero(mask, as_tuple=True)[0]
+    rest = rest[torch.randperm(rest.numel(), generator=gen)]
+    return torch.cat([ctx, rest])
+
 
 def _row_perm(y_i: torch.Tensor, train_size: int, mode: str,
               gen: torch.Generator) -> torch.Tensor:
@@ -146,6 +188,8 @@ def _row_perm(y_i: torch.Tensor, train_size: int, mode: str,
         return gaussian_row_order(y_i, train_size, gen)
     if mode == "mixed":
         return mixed_row_order(y_i, train_size, gen)
+    if mode == "target_balanced":
+        return target_balanced_row_order(y_i, train_size, gen)
     if mode == "uniform":
         # Same operation, unbiased: the control for "a permutation happened".
         return torch.randperm(y_i.numel(), generator=gen)

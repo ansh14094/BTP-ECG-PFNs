@@ -43,8 +43,8 @@ def main() -> None:
         else:
             rest.append(argv[i])
             i += 1
-    if mode not in ("gauss", "uniform", "mixed"):
-        raise SystemExit(f"--reorder_mode must be gauss, uniform or mixed, got {mode!r}")
+    if mode not in ("gauss", "uniform", "mixed", "target_balanced"):
+        raise SystemExit(f"--reorder_mode must be gauss, uniform, mixed or target_balanced, got {mode!r}")
 
     gauss_prior.install(mode=mode, seed=seed)
 

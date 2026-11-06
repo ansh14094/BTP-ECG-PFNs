@@ -1,4 +1,5 @@
 import time
+import random
 import argparse
 import logging
 from tqdm import tqdm
@@ -50,6 +51,7 @@ parser.add_argument('--data_dir', type=str, default='./data', help='data directo
 parser.add_argument('--model', type=str, default='resnet1d_wang_fds', choices=["resnet1d_wang_fds", "inception1d_fds"], help='model name')
 parser.add_argument('--store_root', type=str, default='checkpoint_inception', help='root path for storing checkpoints, logs')
 parser.add_argument('--store_name', type=str, default='', help='experiment store name')
+parser.add_argument('--seed', type=int, default=None, help='random seed; also appended to store_name so seeds do not overwrite each other')
 parser.add_argument('--gpu', type=int, default=None)
 parser.add_argument('--optimizer', type=str, default='adam', choices=['adam', 'sgd'], help='optimizer type')
 parser.add_argument('--loss', type=str, default='l1', choices=['mse', 'l1', 'focal_l1', 'focal_mse', 'huber'], help='training loss type')
@@ -102,6 +104,9 @@ if args.ranking:
 if args.conr:
     args.store_name += f'_conr_{args.conr_w}_{args.conr_weight}_{args.conr_e}'
 args.store_name = f"{args.dataset}_{args.model}{args.store_name}_{args.optimizer}_{args.loss}_{args.lr}_{args.batch_size}"
+if args.seed is not None:
+    # Without this every seed writes to one directory and the last one wins.
+    args.store_name += f"_seed{args.seed}"
 
 prepare_folders(args)
 
@@ -121,6 +126,16 @@ tb_logger = Logger(logdir=os.path.join(args.store_root, args.store_name), flush_
 
 
 def main():
+    if args.seed is not None:
+        # cudnn.deterministic is deliberately NOT set: it changes the convolution
+        # algorithms and so the result, and the point of multiple seeds here is to
+        # measure run-to-run variation under the normal training setup.
+        random.seed(args.seed)
+        np.random.seed(args.seed)
+        torch.manual_seed(args.seed)
+        torch.cuda.manual_seed_all(args.seed)
+        print(f"=====> Seeded with {args.seed}")
+
     if args.gpu is not None:
         print(f"Use GPU: {args.gpu} for training")
 
@@ -148,7 +163,7 @@ def main():
 
     # Model
     print('=====> Building model...')
-    model = resnet1d_wang_fds(input_channels=12, fds=args.fds, bucket_num=args.bucket_num, bucket_start=args.bucket_start,
+    model = resnet1d_wang_fds(input_channels=12, fds=args.fds, return_features=(args.ranking or args.conr), bucket_num=args.bucket_num, bucket_start=args.bucket_start,
                      start_update=args.start_update, start_smooth=args.start_smooth,
                      kernel=args.fds_kernel, ks=args.fds_ks, sigma=args.fds_sigma, momentum=args.fds_mmt)
     model = torch.nn.DataParallel(model).cuda()
@@ -258,7 +273,7 @@ def train(train_loader, model, optimizer, epoch):
         data_time.update(time.time() - end)
         inputs, targets, weights = \
             inputs.cuda(non_blocking=True), targets.cuda(non_blocking=True), weights.cuda(non_blocking=True)
-        if args.fds:
+        if args.fds or args.ranking or args.conr:
             outputs, features = model(inputs, targets, epoch)
         else:
             outputs = model(inputs, targets, epoch)

@@ -66,6 +66,7 @@ class ResNet1DWangFDS(nn.Module):
         num_classes=1,
         inplanes=128,
         kernel_size=(5, 3),
+        return_features=False,
 
         # -------- FDS params --------
         fds=False,
@@ -84,6 +85,10 @@ class ResNet1DWangFDS(nn.Module):
 
         self.inplanes = inplanes
         self.fds = fds
+        # RankSim and ConR both need the pooled encoding, but it was only exposed
+        # when FDS was on -- which would have silently made every regularised run
+        # an FDS run too, confounding the two interventions.
+        self.return_features = return_features
         self.start_smooth = start_smooth
 
         # Stem
@@ -158,7 +163,7 @@ class ResNet1DWangFDS(nn.Module):
 
         out = self.linear(encoding_s)
 
-        if self.training and self.fds:
+        if self.training and (self.fds or self.return_features):
             return out, encoding
         else:
             return out
