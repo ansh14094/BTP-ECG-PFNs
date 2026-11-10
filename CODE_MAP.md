@@ -285,9 +285,17 @@ parameters) and `seconds`.
 
 > **`dir` leaks on PTB-XL.** It resamples all 9483 records, but every encoder was
 > fitted on the official 7566-row train split — so 80–82% of the `dir` test set is
-> data the encoder trained on. Measured directly, seen records score 0.66–0.74 years
-> better than unseen ones, against a Gaussian effect of 0.095 years. **The
-> contamination is about seven times the signal.** Full numbers in `STATUS.md`
+> data the encoder trained on.
+>
+> Two distinct measurements, both now available — do not confuse them:
+> *within* `dir`, seen records score 0.66–0.74 years better than unseen ones;
+> *between* protocols, the clean split costs +0.278 years of band-macro error on
+> average (all 20 encoder × arm cells worse, +0.192 to +0.371). The between-protocol
+> gap is smaller because `dir`'s test set is only ~80% contaminated and is also
+> harder within each age band, which pushes the other way.
+>
+> Either way the contamination dwarfs the effect being measured: the Gaussian prior
+> beats its control by +0.019 years on the clean split. Full numbers in `STATUS.md`
 > section 1.3.
 >
 > PTB-XL results are therefore reported under `fixed`. The `dir` numbers are retained

@@ -36,10 +36,17 @@ absolute error from 7.330 to 7.152 years, and improves every age band at once.
 > **Read [`imbreg/results/STATUS.md`](imbreg/results/STATUS.md) before quoting any
 > PTB-XL number.** The `dir` ("balanced") evaluation protocol re-partitions all 9483
 > records, while every encoder was fitted on the official 7566-row train split — so
-> 80–82% of that test set is data the encoder had already seen. The contamination is
-> worth 0.66–0.74 years, against a Gaussian effect of 0.095 years. PTB-XL results are
-> now reported on the official split; the `dir` numbers are retained and labelled,
-> not deleted.
+> 80–82% of that test set is data the encoder had already seen.
+>
+> Both halves of this are now measured. *Within* the `dir` test set, records the
+> encoder trained on score 0.66–0.74 years better than records it did not.
+> *Between* protocols, moving to the clean official split costs +0.278 years of
+> band-macro error on average — worse in all 20 encoder × arm cells, range +0.192
+> to +0.371. The two numbers differ because `dir`'s test set is only ~80%
+> contaminated and is also harder within each age band.
+>
+> All PTB-XL results are now reported on the official split. The `dir` numbers are
+> retained and labelled, not deleted.
 
 Full numbers: [`imbreg/results/matrix_age_bands.csv`](imbreg/results/matrix_age_bands.csv)
 and `imbreg/results/metrics/`. Generated prose summary:

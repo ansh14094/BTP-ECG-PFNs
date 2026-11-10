@@ -154,3 +154,75 @@ holds about 2.8 GB.
   from 0.076 to 0.095 where the Gaussian arm cuts it to 0.016. The arm is a faithful
   implementation of the plan's spec; its leverage is limited by the prior, and that
   limit should be stated if it underperforms.
+
+---
+
+## 6. Clean-split results — added 10 November 2026
+
+The 100-cell clean matrix (5 encoders × 4 TabICL bodies × 5 seeds, official PTB-XL
+split) is complete. The leak analysis in section 1.3 can now be checked against it
+rather than inferred.
+
+### 6.1 The leak prediction holds, at about half the naive magnitude
+
+Comparing `band_macro` (mean of the three age-band MAEs, so the test set's age mix
+cancels) between protocols, for identical encoder × arm × seed cells:
+
+| | |
+|---|---|
+| cells where the clean split is worse | **20 of 20** |
+| mean gap | **+0.278 years** |
+| range | +0.192 to +0.371 |
+
+Section 1.3 measured a *within*-`dir` gap of 0.66–0.74 years between records the
+encoder had seen and records it had not. The between-protocol gap is smaller, and
+should be: `dir`'s test set is only ~80% contaminated, and it is also harder within
+each age band because the per-bin cap over-samples extreme ages. Those two effects
+push in opposite directions. Both numbers are real; they are not the same quantity,
+and neither should be quoted as "the size of the leak" without saying which it is.
+
+### 6.2 The Gaussian effect shrinks by about two thirds once the leak is removed
+
+Gaussian prior against its matched uniform control, `band_macro`, positive = Gaussian
+better:
+
+| encoder | `dir` (leaky) | `fixed` (clean) |
+|---|---|---|
+| E1 `ptbxl_l1_enc` | +0.158 | +0.051 |
+| E2 `ptbxl_tabpfn_enc` | +0.145 | +0.040 |
+| E3 `ptbxl_enc_e3` | +0.073 | +0.034 |
+| E4 `ptbxl_enc_e4` | −0.077 | −0.033 |
+| E5 `ptbxl_enc_e5` | −0.045 | +0.005 |
+| **mean** | **+0.051** | **+0.019** |
+
++0.019 years is roughly one week of age. It is positive in 4 of 5 encoders, but it is
+not a magnitude any claim should rest on.
+
+### 6.3 What the effect actually is, on clean data
+
+Paired bootstrap, 10k resamples, seed-averaged, E3 encoder, Gaussian-prior TabICL
+against stock TabICL (`imbreg/results/metrics/significance.csv`):
+
+| band | Δ MAE (years) | 95% CI | seeds won | significant |
+|---|---|---|---|---|
+| young (<30) | **−0.551** | [−0.699, −0.403] | 5/5 | yes |
+| middle (30–60) | **+0.683** | [+0.586, +0.785] | 0/5 | yes |
+| old (≥60) | **−0.272** | [−0.454, −0.087] | 5/5 | yes |
+| overall, natural mix | **+0.218** | [+0.130, +0.308] | 0/5 | yes |
+
+Negative = Gaussian better. Both tails improve significantly and the bulk degrades
+significantly. Because the natural PTB-XL test set is 55% middle-aged, the net effect
+on overall MAE is a significant **worsening** of 0.218 years.
+
+This reconciles with 6.2 rather than contradicting it: `band_macro` weights the three
+bands equally, so the tail gains nearly cancel the middle loss; overall MAE weights by
+the natural distribution, where the middle band dominates. **Any claim about this
+method must state which weighting it is using.** On a tail-weighted view it is
+roughly neutral; on the natural distribution it is worse.
+
+### 6.4 Still outstanding
+
+`clean_tabpfn_lr3e-5` (6 cells) and `clean_tabpfn_lr1e-4` (10 cells) were still
+running when the chain died on 7 November and have been restarted. Task A (ResNet
+baselines) and Task B1 (`target_balanced` arm) have not run at all. Three of the four
+significance comparisons are therefore still `MISSING`.

@@ -1,7 +1,7 @@
 # Handoff — state of the work
 
 Written for whoever resumes this project, including the author after a gap.
-Last updated 6 November 2026.
+Last updated 10 November 2026.
 
 A snapshot of a moving system: check it against the sentinels and logs described in
 section 3 before trusting it.
@@ -50,19 +50,29 @@ An ordered chain, `./run_all.sh`, so jobs cannot race for the shared GPU. It hol
 `.runall.lock`; each stage holds its own lock and writes its own sentinel, so the
 chain is safe to re-run — finished stages return immediately.
 
-| | stage | script | unblocks | sentinel |
-|---|---|---|---|---|
-| 0 | `target_balanced` prior training, 3000 steps | `run_prior_target_balanced.sh` | stage 3 | `.priortb_done` |
-| 1 | Task C — PTB-XL matrix on the official split | `run_taskC_clean.sh` | Tables 2 and 3 | `.taskc_done` |
-| 2 | Task A — ResNet baselines, 2 arms × 5 seeds, 90 epochs | `run_task_a.sh` | Table 2 rows 1–2 | `.taska_done` |
-| 3 | Task B1 — `target_balanced` arm on every dataset | `run_taskB1_eval.sh` | Table 1a | `.taskb1_done` |
+| | stage | script | unblocks | sentinel | state at 10 Nov |
+|---|---|---|---|---|---|
+| 0 | `target_balanced` prior training, 3000 steps | `run_prior_target_balanced.sh` | stage 2 | `.priortb_done` | **done** 6 Nov 22:13 |
+| 1 | Task C — PTB-XL matrix on the official split | `run_taskC_clean.sh` | Tables 2 and 3 | `.taskc_done` | 100-cell matrix **done**; 16 TabPFN sweep cells left |
+| 2 | Task B1 — `target_balanced` arm on every dataset | `run_taskB1_eval.sh` | Table 1a | `.taskb1_done` | not started |
+| 3 | Task A — ResNet baselines, 2 arms × 5 seeds, 90 epochs | `run_task_a.sh` | Table 2 rows 1–2 | `.taska_done` | not started |
 
-Stage 0 runs alongside the chain and stage 3 skips itself if
-`tabicl_prior/runs/target_balanced/step-3000.ckpt` is absent, so the two cannot
-deadlock — but stage 3 must be re-run after the checkpoint lands if it skipped.
+**The chain died on 7 November at 01:35** — it was launched from an interactive
+session and did not survive that session ending. The `target_balanced` prior training
+had already completed; Task C was part-way through its TabPFN learning-rate sweep.
+Nothing was corrupted: `run.py` resumes from the JSONL, so the restart skipped all
+100 completed matrix cells in under a minute.
 
-As of the last check: prior training at step ~806/3000; stage 1 queued behind it on
-the GPU mutex; no sentinel written yet.
+Relaunched 10 November under `setsid`, so it is now its own session leader and will
+outlive any terminal. **Launch long jobs this way:**
+
+```bash
+setsid nohup ./run_all.sh >> logs_runall.log 2>&1 < /dev/null &
+```
+
+B1 and A were swapped on 10 November: B1 is ~20 minutes and its prior checkpoint has
+landed, while A is many hours. If the chain dies again, the cheap deliverable is
+already banked.
 
 ## 3. How to find out the real state
 

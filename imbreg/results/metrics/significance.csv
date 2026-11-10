@@ -1,16 +1,16 @@
-comparison,band,status
-1. E3+gauss TabICL vs E3+stock TabICL,overall,MISSING
-1. E3+gauss TabICL vs E3+stock TabICL,young,MISSING
-1. E3+gauss TabICL vs E3+stock TabICL,middle,MISSING
-1. E3+gauss TabICL vs E3+stock TabICL,old,MISSING
-2. E2+gauss TabPFN vs E2+stock TabPFN,overall,MISSING
-2. E2+gauss TabPFN vs E2+stock TabPFN,young,MISSING
-2. E2+gauss TabPFN vs E2+stock TabPFN,middle,MISSING
-2. E2+gauss TabPFN vs E2+stock TabPFN,old,MISSING
-4. abalone: prior gauss vs target_balanced,overall,MISSING
-4. communities: prior gauss vs target_balanced,overall,MISSING
-4. wine_white: prior gauss vs target_balanced,overall,MISSING
-3. best ICL vs ResNet Vanilla,overall,MISSING (Task A pending)
-3. best ICL vs ResNet Vanilla,young,MISSING (Task A pending)
-3. best ICL vs ResNet Vanilla,middle,MISSING (Task A pending)
-3. best ICL vs ResNet Vanilla,old,MISSING (Task A pending)
+comparison,band,status,delta_mae,ci_lo,ci_hi,significant,wins,n_seeds,method
+1. E3+gauss TabICL vs E3+stock TabICL,overall,ok,0.2181,0.1295,0.3078,True,0.0,5.0,"paired bootstrap, seed-averaged"
+1. E3+gauss TabICL vs E3+stock TabICL,young,ok,-0.5508,-0.6985,-0.4034,True,5.0,5.0,"paired bootstrap, seed-averaged"
+1. E3+gauss TabICL vs E3+stock TabICL,middle,ok,0.6831,0.5857,0.7845,True,0.0,5.0,"paired bootstrap, seed-averaged"
+1. E3+gauss TabICL vs E3+stock TabICL,old,ok,-0.2719,-0.4539,-0.0871,True,5.0,5.0,"paired bootstrap, seed-averaged"
+2. E2+gauss TabPFN vs E2+stock TabPFN,overall,MISSING,,,,,,,
+2. E2+gauss TabPFN vs E2+stock TabPFN,young,MISSING,,,,,,,
+2. E2+gauss TabPFN vs E2+stock TabPFN,middle,MISSING,,,,,,,
+2. E2+gauss TabPFN vs E2+stock TabPFN,old,MISSING,,,,,,,
+4. abalone: prior gauss vs target_balanced,overall,MISSING,,,,,,,
+4. communities: prior gauss vs target_balanced,overall,MISSING,,,,,,,
+4. wine_white: prior gauss vs target_balanced,overall,MISSING,,,,,,,
+3. best ICL vs ResNet Vanilla,overall,MISSING (Task A pending),,,,,,,
+3. best ICL vs ResNet Vanilla,young,MISSING (Task A pending),,,,,,,
+3. best ICL vs ResNet Vanilla,middle,MISSING (Task A pending),,,,,,,
+3. best ICL vs ResNet Vanilla,old,MISSING (Task A pending),,,,,,,
