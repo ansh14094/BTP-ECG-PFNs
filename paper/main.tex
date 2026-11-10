@@ -100,7 +100,7 @@ evaluation dataset. Mean $\pm$ sd over 5 seeds; lower is better.}
 \end{table*}
 
 \begin{table*}[t]\centering\small
-\caption{TabPFN-2.5, per-dataset fine-tuning. Learning rate selected on validation.}
+\caption{TabPFN-2.5, per-dataset fine-tuning. Learning rate selected on validation. The target-balanced control is specified on Abalone only. Its row almost reproduces zero-shot because it never improved validation RMSE over the stock model in 14 of 15 (seed, learning rate) runs, so early stopping returned the un-fine-tuned model.}
 \label{tab:1b}
 \resizebox{\textwidth}{!}{\input{tables/table1b}}
 \end{table*}

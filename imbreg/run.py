@@ -472,11 +472,13 @@ def main():
                         center_mode=args.center_mode,
                         query_mode=args.query_mode,
                         sigma_range=sigma_range)
-                elif arm in ("ft_uniform", "ft_gauss", "ft_mixed"):
+                elif arm in ("ft_uniform", "ft_gauss", "ft_mixed",
+                             "ft_target_balanced"):
                     pred = arm_finetune(
                         Xtr, ytr, Xva, yva, X_eval, seed,
                         mode={"ft_uniform": "uniform", "ft_gauss": "gauss",
-                              "ft_mixed": "mixed"}[arm],
+                              "ft_mixed": "mixed",
+                              "ft_target_balanced": "target_balanced"}[arm],
                         epochs=args.epochs, lr=args.lr,
                         ctx_plus_query=args.ctx_plus_query,
                         ctx_keep_frac=args.ctx_keep_frac,

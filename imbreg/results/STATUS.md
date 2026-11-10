@@ -311,3 +311,68 @@ bootstrap, official split:
 Negative = in-context better. The same shape as everywhere else in this study: large,
 significant gains in both tails, a larger loss in the middle, and a net loss overall
 because the middle dominates the natural distribution.
+
+---
+
+## 8. Task B2 — added 10 November 2026
+
+The plan gates B2 on "only if B1 is done by day 5". B1 finished on 10 November,
+day 4, so the gate was satisfied and B2 was run. It needed new code: the
+dataset-level sampler had only `uniform`, `gauss` and `mixed`, so `target_balanced`
+was added to `imbreg/biased_split.py` (50 equal-width bins, matching
+`tabicl_prior/gauss_prior.py` so the two levels measure the same rule) and wired as
+the `ft_target_balanced` arm.
+
+The sampler was checked before use, on a deliberately skewed pool:
+
+| mode | rare-target share of context |
+|---|---|
+| pool baseline | 0.0385 |
+| `uniform` | 0.0382 |
+| `target_balanced` | 0.0785 |
+| `gauss` | 0.0000 |
+
+It does what it claims: roughly doubles the rare-target share, where `uniform`
+tracks the pool.
+
+### 8.1 Result: the balancing hypothesis fails
+
+Abalone few-shot MAE, learning rate selected per seed on validation:
+
+| arm | few-shot MAE | overall MAE |
+|---|---|---|
+| uniform fine-tuning | 5.767 ± 0.217 | 2.786 ± 0.108 |
+| **Gaussian fine-tuning** | **4.127 ± 0.151** | **2.202 ± 0.062** |
+| target-balanced fine-tuning | 6.092 ± 0.148 | 2.929 ± 0.039 |
+
+Gaussian beats uniform in 5 of 5 seeds and target-balanced in 5 of 5, with
+non-overlapping per-seed ranges — about 11.7 pooled standard deviations apart.
+Target-balanced beats uniform in 0 of 5.
+
+This is the strongest evidence in the study for the dataset-level claim. The obvious
+reviewer objection to the Gaussian's few-shot gain is that it merely over-samples
+rare targets; an explicit inverse-density sampler would then reproduce it. It does
+not. Concentrating the context on a drawn region is doing something that flattening
+it across the range does not.
+
+### 8.2 But read the target-balanced row with its mechanism attached
+
+Its predictions are **byte-identical to zero-shot** for most seeds. That is not a
+broken arm: validation RMSE never improved over the starting model, so early stopping
+(patience 8) returned the un-fine-tuned model.
+
+| | |
+|---|---|
+| (seed, lr) cells that reverted to the stock model | **14 of 15** |
+| the exception | seed 3 at lr 1e-4 |
+
+So the honest reading of 8.1 is: *target-balanced fine-tuning does not merely
+underperform the Gaussian — on this dataset it fails to improve on not fine-tuning at
+all, at every learning rate tried.* The table caption states this so the row is not
+mistaken for a fine-tuned model that happens to match zero-shot.
+
+What this does **not** license is "inverse-density context sampling cannot work". It
+was tested at one context size, three learning rates, 60 epochs, on one dataset,
+inside TabPFN's fine-tuning loop with early stopping. A wider sweep could find a
+setting where it trains. The claim supported is the narrow one: under the identical
+protocol that makes Gaussian sampling work, it does not.

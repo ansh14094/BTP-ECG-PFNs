@@ -56,6 +56,7 @@ chain is safe to re-run — finished stages return immediately.
 | 1 | Task C — PTB-XL matrix on the official split | `run_taskC_clean.sh` | Tables 2 and 3 | `.taskc_done` | **done** 10 Nov 16:19 |
 | 2 | Task B1 — `target_balanced` arm on every dataset | `run_taskB1_eval.sh` | Table 1a | `.taskb1_done` | **done** 10 Nov 16:20 |
 | 3 | Task A — ResNet baselines, 2 arms × 5 seeds, 90 epochs | `run_task_a.sh` | Table 2 rows 1–2 | `.taska_done` | **done** 10 Nov 17:01 |
+| 4 | Task B2 — dataset-level target-balanced control, Abalone | `run_taskB2.sh` | Table 1b | `.taskb2_done` | **done** 10 Nov 18:41 |
 | 3 | Task A — ResNet baselines, 2 arms × 5 seeds, 90 epochs | `run_task_a.sh` | Table 2 rows 1–2 | `.taska_done` | not started |
 
 **The chain died on 7 November at 01:35** — it was launched from an interactive
@@ -127,8 +128,6 @@ bodies are still comments, and the author block still says TODO.
 
 ## 6. Previously outstanding, now resolved
 
-- **Task B2** — per-dataset `target_balanced` TabPFN on abalone. Conditional on B1
-  finishing by day 5, per the plan's stop rule.
 - **Re-check the clean numbers against the `dir` ones.** The leak predicts the clean
   PTB-XL errors will be *worse* by roughly 0.66–0.74 years. If they are not, the leak
   analysis itself needs re-examining.

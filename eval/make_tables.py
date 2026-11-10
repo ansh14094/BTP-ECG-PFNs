@@ -153,7 +153,12 @@ def table1b(df) -> None:
             r"& Many & Medium & Few & Overall \\"]
     for title, ds, nd in DATASETS:
         body += [r"\midrule", r"\multicolumn{5}{l}{\textit{" + title + r"}} \\"]
-        body += table_block(df, ds, rows, metrics, "dir", nd)
+        # Task B2 (the dataset-level target-balanced control) is specified on Abalone
+        # only, so the row is emitted only there. Adding it everywhere would print
+        # TODO cells for datasets the plan never asked to be run.
+        ds_rows = rows + [("target-balanced fine-tuning", "ft_target_balanced")] \
+            if ds == "abalone" else rows
+        body += table_block(df, ds, ds_rows, metrics, "dir", nd)
     body += [r"\bottomrule", r"\end{tabular}"]
     write("table1b.tex", "\n".join(body) + "\n")
 

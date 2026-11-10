@@ -98,6 +98,12 @@ def _gumbel_top_k(log_w: np.ndarray, k: int, rng: np.random.Generator) -> np.nda
     return np.argpartition(-(log_w + g), k - 1)[:k]
 
 
+# Task B's spec: 50 equal-width bins over the target. Kept identical to the
+# prior-level arm (tabicl_prior/gauss_prior.py:TARGET_BALANCED_BINS) so the
+# dataset-level and prior-level target-balanced results measure the same rule.
+TARGET_BALANCED_BINS = 50
+
+
 def _inverse_density_log_weights(y: np.ndarray, n_bins: int = 20) -> np.ndarray:
     """log weights proportional to 1 / (bin frequency), i.e. a near-balanced sampler."""
     edges = np.linspace(y.min(), y.max() + 1e-12, n_bins + 1)
@@ -242,6 +248,26 @@ def imbalanced_ctx_query_split(
             c_sel = np.concatenate([g_sel, u_sel])
             # The uniform half guarantees tail coverage, so the degenerate-context
             # failure mode that affects pure "gauss" cannot arise here.
+    elif mode == "target_balanced":
+        # The control that makes the Gaussian claim falsifiable at the dataset level.
+        # `gauss` concentrates the context on one drawn region of target space; this
+        # flattens it across the whole range by sampling each row with probability
+        # proportional to 1 / (count of its target bin). Everything else -- context
+        # size, query sampling, steps, lr, optimizer -- is identical to the Gaussian
+        # arm, so the only thing that differs is the sampling weight.
+        y_rem = yv[remaining]
+        std = float(np.std(y_rem))
+        if std < 1e-12:  # degenerate target in this episode; nothing to balance
+            c_sel = rng.choice(len(remaining), size=n_ctx, replace=False)
+        else:
+            log_w = _inverse_density_log_weights(y_rem, n_bins=TARGET_BALANCED_BINS)
+            c_sel = _gumbel_top_k(log_w, n_ctx, rng)
+            # Inverse-density weighting spreads the context over the whole target
+            # range, so the zero-variance context that can afflict a narrow `gauss`
+            # draw is not expected here. Checked anyway, because TabPFN divides by
+            # the context's own standard deviation and a zero there explodes the NLL.
+            if float(np.std(y_rem[c_sel])) < DEGENERATE_CONTEXT_FRAC * std:
+                c_sel = rng.choice(len(remaining), size=n_ctx, replace=False)
     else:
         raise ValueError(f"unknown mode {mode!r}")
 
