@@ -16,9 +16,9 @@ the measured difference. Cases where the method does worse are included.
 - Wine Quality White: against its matched uniform control, Gaussian context increases it from 0.787 to 0.828 (overall MAE).
 - Gaussian context improves overall MAE on 0 of 3 tabular datasets.
 
-- Abalone: target-balanced context not available.
-- Communities: target-balanced context not available.
-- Wine Quality White: target-balanced context not available.
+- Abalone: Gaussian few-shot MAE 6.385 is better than target-balanced 7.233.
+- Communities: Gaussian few-shot MAE 0.2854 is better than target-balanced 0.3552.
+- Wine Quality White: Gaussian few-shot MAE 2.517 is better than target-balanced 2.535.
 
 ## Table 1b — TabPFN-2.5, per-dataset fine-tuning
 
@@ -28,18 +28,37 @@ the measured difference. Cases where the method does worse are included.
 
 ## Table 2 — PTB-XL age prediction, official test split
 
-- E3 + stock TabICL: not available.
-- E3 + Gaussian TabICL: not available.
-- E2 + Gaussian TabPFN: natural MAE 7.421 years, below the ResNet vanilla baseline at 7.548.
+- E3 + stock TabICL: natural MAE 7.353 years, below the ResNet vanilla baseline at 7.477.
+- E3 + Gaussian TabICL: natural MAE 7.585 years, above the ResNet vanilla baseline at 7.477.
+- E2 + Gaussian TabPFN: natural MAE 7.421 years, below the ResNet vanilla baseline at 7.477.
+- The trade-off, E3: Gaussian context reduces it from 7.601 to 7.342 in the age>=60 band and increases it from 7.152 to 7.849 in the 30-60 band.
 
 ## Table 3 — encoder against prediction head
 
-- E1: clean-split results not available.
-- E2: clean-split results not available.
-- E3: clean-split results not available.
-- E4: clean-split results not available.
+- E1: on the official split the Gaussian head increases it from 7.428 to 7.654.
+  On the balanced split the same pair reads 7.330 and 7.162; the balanced split re-uses encoder training data (see results/STATUS.md) and is optimistic by roughly 0.7 years.
+- E2: on the official split the Gaussian head increases it from 7.428 to 7.648.
+  On the balanced split the same pair reads 7.258 and 7.108; the balanced split re-uses encoder training data (see results/STATUS.md) and is optimistic by roughly 0.7 years.
+- E3: on the official split the Gaussian head increases it from 7.353 to 7.585.
+  On the balanced split the same pair reads 7.152 and 7.042; the balanced split re-uses encoder training data (see results/STATUS.md) and is optimistic by roughly 0.7 years.
+- E4: on the official split the Gaussian head increases it from 7.469 to 7.617.
+  On the balanced split the same pair reads 7.384 and 7.392; the balanced split re-uses encoder training data (see results/STATUS.md) and is optimistic by roughly 0.7 years.
 
 ## Significance (paired bootstrap, 10,000 resamples)
 
-- No comparison has both arms available yet.
+- 1. E3+gauss TabICL vs E3+stock TabICL [overall]: dMAE +0.218, 95% CI [+0.130, +0.308] (excludes zero), wins 0/5 seeds.
+- 1. E3+gauss TabICL vs E3+stock TabICL [young]: dMAE -0.551, 95% CI [-0.699, -0.403] (excludes zero), wins 5/5 seeds.
+- 1. E3+gauss TabICL vs E3+stock TabICL [middle]: dMAE +0.683, 95% CI [+0.586, +0.784] (excludes zero), wins 0/5 seeds.
+- 1. E3+gauss TabICL vs E3+stock TabICL [old]: dMAE -0.272, 95% CI [-0.454, -0.087] (excludes zero), wins 5/5 seeds.
+- 2. E2+gauss TabPFN vs E2+stock TabPFN [overall]: dMAE +0.057, 95% CI [+0.026, +0.087] (excludes zero), wins 0/5 seeds.
+- 2. E2+gauss TabPFN vs E2+stock TabPFN [young]: dMAE -0.069, 95% CI [-0.140, +0.004] (includes zero), wins 3/5 seeds.
+- 2. E2+gauss TabPFN vs E2+stock TabPFN [middle]: dMAE +0.115, 95% CI [+0.079, +0.152] (excludes zero), wins 0/5 seeds.
+- 2. E2+gauss TabPFN vs E2+stock TabPFN [old]: dMAE +0.008, 95% CI [-0.057, +0.073] (includes zero), wins 2/5 seeds.
+- 4. abalone: prior gauss vs target_balanced [overall]: dMAE -0.432, 95% CI [-0.488, -0.377] (excludes zero), wins 5/5 seeds.
+- 4. communities: prior gauss vs target_balanced [overall]: dMAE -0.034, 95% CI [-0.039, -0.028] (excludes zero), wins 5/5 seeds.
+- 4. wine_white: prior gauss vs target_balanced [overall]: dMAE +0.003, 95% CI [-0.007, +0.013] (includes zero), wins 0/5 seeds.
+- 3. best ICL vs ResNet Vanilla [ptbxl_enc_e3 ticl_prior_gauss] [overall]: dMAE +0.401, 95% CI [+0.185, +0.616] (excludes zero), wins 1/5 seeds.
+- 3. best ICL vs ResNet Vanilla [ptbxl_enc_e3 ticl_prior_gauss] [young]: dMAE -1.337, 95% CI [-1.899, -0.744] (excludes zero), wins 5/5 seeds.
+- 3. best ICL vs ResNet Vanilla [ptbxl_enc_e3 ticl_prior_gauss] [middle]: dMAE +1.369, 95% CI [+1.103, +1.632] (excludes zero), wins 0/5 seeds.
+- 3. best ICL vs ResNet Vanilla [ptbxl_enc_e3 ticl_prior_gauss] [old]: dMAE -0.561, 95% CI [-0.948, -0.167] (excludes zero), wins 5/5 seeds.
 

@@ -1,7 +1,7 @@
 # Handoff — state of the work
 
 Written for whoever resumes this project, including the author after a gap.
-Last updated 10 November 2026.
+Last updated 10 November 2026 (all runs complete).
 
 A snapshot of a moving system: check it against the sentinels and logs described in
 section 3 before trusting it.
@@ -53,8 +53,9 @@ chain is safe to re-run — finished stages return immediately.
 | | stage | script | unblocks | sentinel | state at 10 Nov |
 |---|---|---|---|---|---|
 | 0 | `target_balanced` prior training, 3000 steps | `run_prior_target_balanced.sh` | stage 2 | `.priortb_done` | **done** 6 Nov 22:13 |
-| 1 | Task C — PTB-XL matrix on the official split | `run_taskC_clean.sh` | Tables 2 and 3 | `.taskc_done` | 100-cell matrix **done**; 16 TabPFN sweep cells left |
-| 2 | Task B1 — `target_balanced` arm on every dataset | `run_taskB1_eval.sh` | Table 1a | `.taskb1_done` | not started |
+| 1 | Task C — PTB-XL matrix on the official split | `run_taskC_clean.sh` | Tables 2 and 3 | `.taskc_done` | **done** 10 Nov 16:19 |
+| 2 | Task B1 — `target_balanced` arm on every dataset | `run_taskB1_eval.sh` | Table 1a | `.taskb1_done` | **done** 10 Nov 16:20 |
+| 3 | Task A — ResNet baselines, 2 arms × 5 seeds, 90 epochs | `run_task_a.sh` | Table 2 rows 1–2 | `.taska_done` | **done** 10 Nov 17:01 |
 | 3 | Task A — ResNet baselines, 2 arms × 5 seeds, 90 epochs | `run_task_a.sh` | Table 2 rows 1–2 | `.taska_done` | not started |
 
 **The chain died on 7 November at 01:35** — it was launched from an interactive
@@ -111,7 +112,20 @@ is stale and harmless, since `flock` releases on process exit.
    before the tables are final; a `TODO` marks a cell whose run has not landed.
 5. **Update `STATUS.md` section 3** with what completed.
 
-## 5. Still outstanding after the chain
+## 5. Status: complete
+
+All three stages finished on 10 November. Every cell of all four tables is populated
+(`grep TODO paper/tables/*.tex` is empty), all four significance comparisons report
+`ok`, and `paper/main.pdf` compiles to 2 pages with no overfull boxes.
+
+Getting Task A to run at all required three fixes — a protobuf incompatibility, a
+`DataParallel` GPU-selection problem, and a wrong checkpoint path — all recorded in
+`imbreg/results/STATUS.md` section 7.1 and fixed in `run_task_a.sh`.
+
+What is left is **writing**, not compute: `paper/main.tex` is a scaffold whose section
+bodies are still comments, and the author block still says TODO.
+
+## 6. Previously outstanding, now resolved
 
 - **Task B2** — per-dataset `target_balanced` TabPFN on abalone. Conditional on B1
   finishing by day 5, per the plan's stop rule.

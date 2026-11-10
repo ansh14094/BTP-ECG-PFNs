@@ -226,3 +226,88 @@ roughly neutral; on the natural distribution it is worse.
 running when the chain died on 7 November and have been restarted. Task A (ResNet
 baselines) and Task B1 (`target_balanced` arm) have not run at all. Three of the four
 significance comparisons are therefore still `MISSING`.
+
+---
+
+## 7. All runs complete — 10 November 2026
+
+Tasks A, B1 and C have all finished. Every cell in all four tables is populated;
+`grep TODO paper/tables/*.tex` returns nothing.
+
+### 7.1 Three bugs that had to be fixed to get Task A to run
+
+Task A had never executed successfully. All ten runs failed in about one second
+each, twice, for different reasons:
+
+1. **protobuf.** `train.py` imports `tensorboard_logger`, whose bundled `*_pb2.py`
+   files were generated against protobuf 3.x. The installed version is 7.36.2, so the
+   import dies with *"Descriptors cannot be created directly"*. Fixed with protobuf's
+   documented workaround, `PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python`, set inside
+   `run_task_a.sh` — not by downgrading protobuf, which would risk breaking TabICL and
+   TabPFN for every other experiment and for the other user of this workstation.
+2. **GPU selection.** `train.py` wraps the model in `DataParallel` over every visible
+   device. This machine has an RTX PRO 6000 (95 GB) *and* a T400 (3.6 GB), so every
+   batch was split across both and the small card set the pace. Pinning to the large
+   card took training from 0.20 s/batch to 0.00–0.01 s/batch, roughly twenty-fold.
+   Note `nvidia-smi` numbers by PCI bus (T400 = 0) while torch defaults to
+   fastest-first (RTX PRO = 0); `CUDA_DEVICE_ORDER=PCI_BUS_ID` is set to disambiguate.
+3. **Checkpoint path.** The script reconstructed the run directory name by hand and
+   got it wrong twice: `train.py` appends `--store_name` to the model name, producing a
+   *double* underscore, and for `--ranking`/`--conr` it also embeds every regulariser
+   hyperparameter. All ten runs trained correctly and were then reported as
+   "no checkpoint". The script now globs for the directory instead.
+
+Because of (2), the baselines were retrained on one GPU rather than two. Batch-norm
+statistics are computed differently under single-GPU, so these runs are not
+bit-identical to the original reference run.
+
+### 7.2 The baselines are sane
+
+| arm | test L1 (years), mean ± sd over 5 seeds |
+|---|---|
+| ResNet vanilla | **7.477 ± 0.095** |
+| ResNet + RankSim + ConR | 7.551 ± 0.155 |
+
+The original reference run reported 7.5485. The new vanilla mean sits within one
+standard deviation of it, which is the agreement that was being checked for.
+
+**The imbalance methods do not help.** RankSim + ConR is *worse* than plain L1 on
+overall error and worse in two of the three age bands. With 5 seeds and this spread
+the difference is not significant, but there is certainly no gain to claim.
+
+### 7.3 The target-balanced control: read it carefully
+
+`significance.csv` reports comparison 4 as Gaussian *beating* `target_balanced` on
+abalone (−0.432, significant) and communities (−0.034, significant). **On its own
+this is misleading.** The three-way comparison on overall MAE under `dir`:
+
+| dataset | uniform control | Gaussian | target-balanced |
+|---|---|---|---|
+| abalone | **2.943** | 3.000 | 3.432 |
+| communities | **0.1598** | 0.1708 | 0.2047 |
+| wine_white | **0.787** | 0.828 | 0.825 |
+
+The ordering is the same on all three: **uniform < Gaussian < target-balanced**, i.e.
+the unbiased control is best and the most aggressive reweighting is worst. Gaussian
+beats `target_balanced` only because `target_balanced` is the worst arm of the three.
+It does not beat the control it has to beat.
+
+The honest statement for the tabular benchmarks is therefore: *any* non-uniform
+reordering of the prior's context hurts, and it hurts more the further from uniform
+it goes.
+
+### 7.4 In-context stack versus the ResNet baseline
+
+Best in-context cell (E3 + Gaussian-prior TabICL) against ResNet vanilla, paired
+bootstrap, official split:
+
+| band | Δ MAE (years) | 95% CI | significant |
+|---|---|---|---|
+| young (<30) | **−1.337** | [−1.899, −0.744] | yes |
+| old (≥60) | **−0.561** | [−0.948, −0.167] | yes |
+| middle (30–60) | **+1.369** | [+1.103, +1.632] | yes |
+| overall, natural mix | **+0.401** | [+0.185, +0.616] | yes |
+
+Negative = in-context better. The same shape as everywhere else in this study: large,
+significant gains in both tails, a larger loss in the middle, and a net loss overall
+because the middle dominates the natural distribution.

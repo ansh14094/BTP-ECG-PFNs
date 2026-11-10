@@ -52,8 +52,10 @@
 %   evaluation distribution is unchanged by the intervention.
 Each episode draws a centre and a width,
 \begin{equation}
-\mu = Q_y(u),\quad u \sim U(0.05, 0.95), \qquad
-\sigma = \mathrm{sd}(y)\, e^{v},\quad v \sim U(\log 0.15, \log 1.5),
+\begin{aligned}
+\mu &= Q_y(u), &\quad u &\sim U(0.05, 0.95),\\
+\sigma &= \mathrm{sd}(y)\, e^{v}, &\quad v &\sim U(\log 0.15, \log 1.5),
+\end{aligned}
 \end{equation}
 and weights each candidate context row by
 $w_i \propto \exp\!\big(-\tfrac12((y_i-\mu)/\sigma)^2\big)$.
@@ -90,32 +92,32 @@ $w_i \propto \exp\!\big(-\tfrac12((y_i-\mu)/\sigma)^2\big)$.
 %   on the official train split, so ~80\% of that test set is data the encoder has
 %   already seen. See the limitations paragraph.
 
-\begin{table}[t]\centering\small
+\begin{table*}[t]\centering\small
 \caption{TabICL, synthetic-prior continued pre-training only. No model has seen any
 evaluation dataset. Mean $\pm$ sd over 5 seeds; lower is better.}
 \label{tab:1a}
-\input{tables/table1a}
-\end{table}
+\resizebox{\textwidth}{!}{\input{tables/table1a}}
+\end{table*}
 
-\begin{table}[t]\centering\small
+\begin{table*}[t]\centering\small
 \caption{TabPFN-2.5, per-dataset fine-tuning. Learning rate selected on validation.}
 \label{tab:1b}
-\input{tables/table1b}
-\end{table}
+\resizebox{\textwidth}{!}{\input{tables/table1b}}
+\end{table*}
 
 \begin{table*}[t]\centering\small
 \caption{PTB-XL age prediction, mean absolute error in years, on the official test
 split. Band-macro is the unweighted mean of the three band errors.}
 \label{tab:2}
-\input{tables/table2}
+\resizebox{\textwidth}{!}{\input{tables/table2}}
 \end{table*}
 
-\begin{table}[t]\centering\small
+\begin{table*}[t]\centering\small
 \caption{Encoder training against prediction head. The gap between the two column
 groups is the contamination in the balanced protocol, not a property of the method.}
 \label{tab:3}
-\input{tables/table3}
-\end{table}
+\resizebox{\textwidth}{!}{\input{tables/table3}}
+\end{table*}
 
 \begin{figure}[t]\centering
 \includegraphics[width=\columnwidth]{figs/fig1_method.pdf}
