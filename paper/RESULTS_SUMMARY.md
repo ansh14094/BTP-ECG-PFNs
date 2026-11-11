@@ -50,15 +50,19 @@ the measured difference. Cases where the method does worse are included.
 - 1. E3+gauss TabICL vs E3+stock TabICL [young]: dMAE -0.551, 95% CI [-0.699, -0.403] (excludes zero), wins 5/5 seeds.
 - 1. E3+gauss TabICL vs E3+stock TabICL [middle]: dMAE +0.683, 95% CI [+0.586, +0.784] (excludes zero), wins 0/5 seeds.
 - 1. E3+gauss TabICL vs E3+stock TabICL [old]: dMAE -0.272, 95% CI [-0.454, -0.087] (excludes zero), wins 5/5 seeds.
-- 2. E2+gauss TabPFN vs E2+stock TabPFN [overall]: dMAE +0.057, 95% CI [+0.026, +0.087] (excludes zero), wins 0/5 seeds.
-- 2. E2+gauss TabPFN vs E2+stock TabPFN [young]: dMAE -0.069, 95% CI [-0.140, +0.004] (includes zero), wins 3/5 seeds.
-- 2. E2+gauss TabPFN vs E2+stock TabPFN [middle]: dMAE +0.115, 95% CI [+0.079, +0.152] (excludes zero), wins 0/5 seeds.
-- 2. E2+gauss TabPFN vs E2+stock TabPFN [old]: dMAE +0.008, 95% CI [-0.057, +0.073] (includes zero), wins 2/5 seeds.
-- 4. abalone: prior gauss vs target_balanced [overall]: dMAE -0.432, 95% CI [-0.488, -0.377] (excludes zero), wins 5/5 seeds.
+- 2a. E2+gauss TabPFN vs E2+stock TabPFN (plan reference) [overall]: dMAE +0.000, 95% CI [+0.000, +0.000] (includes zero), wins 0/5 seeds.
+- 2a. E2+gauss TabPFN vs E2+stock TabPFN (plan reference) [young]: dMAE +0.000, 95% CI [+0.000, +0.000] (includes zero), wins 0/5 seeds.
+- 2a. E2+gauss TabPFN vs E2+stock TabPFN (plan reference) [middle]: dMAE +0.000, 95% CI [+0.000, +0.000] (includes zero), wins 0/5 seeds.
+- 2a. E2+gauss TabPFN vs E2+stock TabPFN (plan reference) [old]: dMAE +0.000, 95% CI [+0.000, +0.000] (includes zero), wins 0/5 seeds.
+- 2b. E2+gauss TabPFN vs E2+uniform-FT TabPFN (matched control) [overall]: dMAE +0.057, 95% CI [+0.026, +0.087] (excludes zero), wins 0/5 seeds.
+- 2b. E2+gauss TabPFN vs E2+uniform-FT TabPFN (matched control) [young]: dMAE -0.069, 95% CI [-0.141, +0.003] (includes zero), wins 3/5 seeds.
+- 2b. E2+gauss TabPFN vs E2+uniform-FT TabPFN (matched control) [middle]: dMAE +0.115, 95% CI [+0.080, +0.152] (excludes zero), wins 0/5 seeds.
+- 2b. E2+gauss TabPFN vs E2+uniform-FT TabPFN (matched control) [old]: dMAE +0.008, 95% CI [-0.058, +0.074] (includes zero), wins 2/5 seeds.
+- 4. abalone: prior gauss vs target_balanced [overall]: dMAE -0.432, 95% CI [-0.487, -0.376] (excludes zero), wins 5/5 seeds.
 - 4. communities: prior gauss vs target_balanced [overall]: dMAE -0.034, 95% CI [-0.039, -0.028] (excludes zero), wins 5/5 seeds.
 - 4. wine_white: prior gauss vs target_balanced [overall]: dMAE +0.003, 95% CI [-0.007, +0.013] (includes zero), wins 0/5 seeds.
-- 3. best ICL vs ResNet Vanilla [ptbxl_enc_e3 ticl_prior_gauss] [overall]: dMAE +0.401, 95% CI [+0.185, +0.616] (excludes zero), wins 1/5 seeds.
-- 3. best ICL vs ResNet Vanilla [ptbxl_enc_e3 ticl_prior_gauss] [young]: dMAE -1.337, 95% CI [-1.899, -0.744] (excludes zero), wins 5/5 seeds.
-- 3. best ICL vs ResNet Vanilla [ptbxl_enc_e3 ticl_prior_gauss] [middle]: dMAE +1.369, 95% CI [+1.103, +1.632] (excludes zero), wins 0/5 seeds.
-- 3. best ICL vs ResNet Vanilla [ptbxl_enc_e3 ticl_prior_gauss] [old]: dMAE -0.561, 95% CI [-0.948, -0.167] (excludes zero), wins 5/5 seeds.
+- 3. best ICL vs ResNet Vanilla [ptbxl_enc_e3 ticl_prior_gauss] [overall]: dMAE +0.401, 95% CI [+0.184, +0.620] (excludes zero), wins 1/5 seeds.
+- 3. best ICL vs ResNet Vanilla [ptbxl_enc_e3 ticl_prior_gauss] [young]: dMAE -1.337, 95% CI [-1.890, -0.744] (excludes zero), wins 5/5 seeds.
+- 3. best ICL vs ResNet Vanilla [ptbxl_enc_e3 ticl_prior_gauss] [middle]: dMAE +1.369, 95% CI [+1.106, +1.633] (excludes zero), wins 0/5 seeds.
+- 3. best ICL vs ResNet Vanilla [ptbxl_enc_e3 ticl_prior_gauss] [old]: dMAE -0.561, 95% CI [-0.953, -0.174] (excludes zero), wins 5/5 seeds.
 

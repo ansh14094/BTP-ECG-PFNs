@@ -38,7 +38,19 @@ JSONL = os.path.join(ROOT, "imbreg", "results")
 OUT = os.path.join(ROOT, "paper", "tables")
 
 SEEDS = (0, 1, 2, 3, 4)
-LR_SWEPT = {"ft_gauss", "ft_uniform", "ft_mixed", "ticl_ft_gauss", "ticl_ft_uniform"}
+# Arms whose runs were swept over learning rates under separate tags, so a cell
+# must SELECT one tag on validation RMSE rather than average the sweep.
+# `ft_target_balanced` (Task B2) was missing here, which silently averaged its
+# three learning rates while every other fine-tuning row selected one -- an
+# inconsistent model-selection rule inside the same table.
+LR_SWEPT = {"ft_gauss", "ft_uniform", "ft_mixed", "ticl_ft_gauss",
+            "ticl_ft_uniform", "ft_target_balanced"}
+
+# Diagnostic runs that must never enter a reported cell. `taskA_probe` is a
+# single-seed re-evaluation of the ORIGINAL pre-existing ResNet checkpoint, kept
+# for the reference-value sanity check (it reproduces 7.5485). It is not one of
+# the five Task A seeds, and averaging it into seed 0 biased the baseline.
+EXCLUDE_TAGS = {"taskA_probe"}
 TODO = r"\textit{TODO}"
 
 
@@ -68,6 +80,7 @@ def cell(df: pd.DataFrame, dataset: str, protocol: str, arm: str,
          metric: str, tag: str | None = None) -> np.ndarray:
     """Per-seed values for one cell, after learning-rate selection where it applies."""
     sub = df[(df.dataset == dataset) & (df.protocol == protocol) & (df.arm == arm)]
+    sub = sub[~sub.tag.isin(EXCLUDE_TAGS)]
     if tag is not None:
         sub = sub[sub.tag == tag]
     if sub.empty or metric not in sub.columns:

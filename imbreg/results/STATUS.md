@@ -75,7 +75,9 @@ instructions to flag any rerun differing by more than 0.1 MAE. All 14 were
 recomputed through the new `eval/compute_metrics.py` pipeline, from the saved
 prediction files.
 
-**All 14 reproduce. Zero flags.** Largest absolute difference 0.0005.
+**All reproduce. Zero flags.** Largest absolute difference 0.0005. (Recounted on
+11 Nov 2026: the plan lists **18** reference values, not 14. All 18 reproduce; the
+full table is in `RESULTS.md` section 4.)
 
 This validates the new metric code against whatever produced the original numbers.
 
@@ -376,3 +378,62 @@ was tested at one context size, three learning rates, 60 epochs, on one dataset,
 inside TabPFN's fine-tuning loop with early stopping. A wider sweep could find a
 setting where it trains. The claim supported is the narrow one: under the identical
 protocol that makes Gaussian sampling work, it does not.
+
+
+---
+
+## 9. Corrections found while compiling `RESULTS.md` — 11 November 2026
+
+Recomputing every table from the prediction files for `RESULTS.md` surfaced four
+issues. All are fixed in code; `paper/tables/*.tex`, `significance.csv`,
+`paper/RESULTS_SUMMARY.md` and `paper/main.pdf` were regenerated.
+
+### 9.1 `ft_target_balanced` was missing from `LR_SWEPT`
+
+`eval/make_tables.py` resolves a learning-rate sweep by selecting the lowest
+validation RMSE, for arms listed in `LR_SWEPT`. The Task B2 arm was not in that set,
+so its Table 1b cell **averaged** its three learning rates while every other
+fine-tuning row **selected** one. Two model-selection rules in one table.
+
+Fixed. Abalone target-balanced row, few-shot 6.139 ± 0.063 -> **6.092 ± 0.148**,
+overall 2.938 ± 0.030 -> **2.929 ± 0.039**. Section 8.1 above already quoted the
+validation-selected values, so that section was right and the table was wrong.
+
+No other row is affected: the remaining multi-tag arms are either listed in
+`LR_SWEPT` or carry duplicate tags that are identical re-evaluations of one model.
+
+### 9.2 `taskA_probe` was contaminating the ResNet vanilla baseline
+
+`taskA_probe` is a single-seed re-evaluation of the ORIGINAL pre-existing checkpoint
+(it reproduces 7.5485), kept for the reference-value check. It is not one of the five
+Task A seeds, but it was being averaged into seed 0 of the reported baseline.
+
+Fixed with an `EXCLUDE_TAGS` set. Table 2 row 1: natural 7.483 -> **7.477**,
+band_macro 7.888 -> **7.854**, young 8.603 -> **8.533**, middle 6.726 -> **6.784**,
+old 8.334 -> **8.244**, GM 4.869 -> **4.863**. The error made the baseline look worse
+than it is, i.e. it biased in favour of our method. Significance comparison 3 now
+uses the corrected baseline.
+
+### 9.3 Significance comparison 2 was labelled with a reference it did not use
+
+The row read "E2+gauss TabPFN vs E2+stock TabPFN" but compared against `ft_uniform`.
+Both references are now computed and labelled separately (2a vs stock, the plan's
+reference; 2b vs uniform fine-tuning, the matched control).
+
+### 9.4 A zero-width bootstrap interval was reported as significant
+
+`not (lo < 0 < hi)` marks `[0.000, 0.000]` as significant. Changed to
+`not (lo <= 0 <= hi)`. No other row changes.
+
+### 9.5 The finding that 9.3 exposed
+
+Running the plan's own comparison 2a returns **delta = 0.0000, CI [0, 0]**:
+**E2 + Gaussian TabPFN under the clean `fixed` protocol is byte-identical to the
+zero-shot model in all 5 seeds** (md5 verified). Same early-stopping revert as the
+Task B2 target-balanced arm in section 8.2. The matched control `ft_uniform` did
+train (7.372 vs 7.421), so the loop works.
+
+Consequence: **the dataset-level result does not transfer to PTB-XL under the clean
+protocol.** Under `dir` it appears to (7.280 -> 6.872), which is one more reason the
+`dir` numbers must not be quoted. Table 2 row 4 is kept, with the mechanism in its
+caption, because deleting it would hide a negative result.

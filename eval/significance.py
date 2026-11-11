@@ -67,8 +67,13 @@ def _boot_ci(err_m: np.ndarray, err_r: np.ndarray) -> tuple[float, float, float]
 
 
 def compare(label: str, dataset: str, tag: str, protocol: str,
-            arm_m: str, arm_r: str, bands=("overall",)) -> list[dict]:
-    M, R = load(dataset, tag, protocol, arm_m), load(dataset, tag, protocol, arm_r)
+            arm_m: str, arm_r: str, bands=("overall",),
+            tag_r: str | None = None) -> list[dict]:
+    """`tag_r` lets the reference arm live under a different tag. The zero-shot
+    predictions were written under `clean_tabpfn` while the fine-tuning sweep wrote
+    `clean_tabpfn_lr*`, so comparing against stock needs the two to differ."""
+    M = load(dataset, tag, protocol, arm_m)
+    R = load(dataset, tag_r or tag, protocol, arm_r)
     seeds = sorted(set(M) & set(R))
     if not seeds:
         return [{"comparison": label, "band": b, "status": "MISSING"} for b in bands]
@@ -116,7 +121,9 @@ def compare(label: str, dataset: str, tag: str, protocol: str,
         rows.append({"comparison": label, "band": band, "status": "ok",
                      "delta_mae": round(delta, 4), "ci_lo": round(lo, 4),
                      "ci_hi": round(hi, 4),
-                     "significant": bool(lo < 0 < hi) is False,
+                     "significant": not (lo <= 0 <= hi),  # <= so a degenerate CI
+                     # (identical predictions -> lo = hi = 0) reads as NOT significant
+                     
                      "wins": wins, "n_seeds": len(seeds), "method": method})
     return rows
 
@@ -129,8 +136,15 @@ def main() -> None:
     cmp_specs.append(("1. E3+gauss TabICL vs E3+stock TabICL",
                       "ptbxl_enc_e3", "clean_matrix", "fixed",
                       "ticl_prior_gauss", "ticl_zeroshot", PB))
-    # 2. E2 + Gaussian TabPFN vs E2 + stock TabPFN
-    cmp_specs.append(("2. E2+gauss TabPFN vs E2+stock TabPFN",
+    # 2. E2 + Gaussian TabPFN. The plan names the reference as stock TabPFN; the
+    # matched control (uniform-context fine-tuning, same budget) is the more
+    # informative reference, so BOTH are reported and each is labelled with the
+    # reference it actually used. They were previously conflated: the row said
+    # "vs stock" while the code compared against ft_uniform.
+    cmp_specs.append(("2a. E2+gauss TabPFN vs E2+stock TabPFN (plan reference)",
+                      "ptbxl_tabpfn_enc", "clean_tabpfn_lr1e-4", "fixed",
+                      "ft_gauss", "zeroshot", PB, "clean_tabpfn"))
+    cmp_specs.append(("2b. E2+gauss TabPFN vs E2+uniform-FT TabPFN (matched control)",
                       "ptbxl_tabpfn_enc", "clean_tabpfn_lr1e-4", "fixed",
                       "ft_gauss", "ft_uniform", PB))
     # 4. TabICL Gaussian vs target-balanced, few-shot region, tabular
@@ -197,7 +211,7 @@ def compare_cross(label: str) -> list[dict]:
         rows.append({"comparison": f"{label} [{ds_best} {arm_best}]", "band": band,
                      "status": "ok", "delta_mae": round(delta, 4),
                      "ci_lo": round(lo, 4), "ci_hi": round(hi, 4),
-                     "significant": not (lo < 0 < hi), "wins": int(wins),
+                     "significant": not (lo <= 0 <= hi), "wins": int(wins),
                      "n_seeds": len(seeds),
                      "method": "paired bootstrap, seed-averaged"})
     return rows
