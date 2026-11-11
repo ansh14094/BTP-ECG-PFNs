@@ -11,10 +11,10 @@ breakdown in section 3 and the sampler verification in section 10.1. Both are qu
 from the recorded diagnostic runs in `imbreg/results/STATUS.md` and are marked where
 they appear.
 
-| | |
+| Item | Value |
 |---|---|
 | Compiled | 11 November 2026 |
-| Repository | <https://github.com/ansh14094/BTP-ECG-PFNs> |
+| Repository | [ansh14094/BTP-ECG-PFNs](https://github.com/ansh14094/BTP-ECG-PFNs) |
 | Prediction files | 1161 |
 | Metric rows (`all_metrics.csv`) | 1161 |
 | Seeds per reported cell | 5 (0–4) |
@@ -598,7 +598,7 @@ predictions are byte-identical to zero-shot there. Same mechanism as section 7.3
 validation RMSE never improved, so early stopping (patience 8) returned the
 un-fine-tuned model.
 
-| | |
+| Quantity | Value |
 |---|---|
 | (seed, lr) cells that reverted to the stock model | **14 of 15** |
 | the exception | seed 3 at lr 1e-4 |
@@ -626,7 +626,7 @@ inferred.
 Band-macro compared between protocols for identical encoder × arm cells (band-macro
 so the test set's age mix cancels):
 
-| | |
+| Quantity | Value |
 |---|---|
 | Cells where the clean split is worse | **20 of 20** |
 | Mean gap | **+0.278 years** |
