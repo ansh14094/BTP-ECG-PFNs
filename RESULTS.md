@@ -18,7 +18,7 @@ they appear.
 | Prediction files | 1161 |
 | Metric rows (`all_metrics.csv`) | 1161 |
 | Seeds per reported cell | 5 (0–4) |
-| `TODO` cells across the four tables | 0 |
+| `TODO` cells across the four tables | 2 (ResNet Balanced — see section 7) |
 | Significance comparisons reporting `ok` | 19 of 19 |
 
 **Dispersion convention.** All `mean ± sd` figures use the **population** standard
@@ -66,7 +66,7 @@ Plan section 7 checklist, verified by file existence and content:
 | 4 | `results/metrics/*.csv` | 15 files incl. `all_metrics.csv`, `significance.csv` |
 | 5 | `paper/tables/table1a.tex` | present, 0 TODO |
 | 6 | `paper/tables/table1b.tex` | present, 0 TODO |
-| 7 | `paper/tables/table2.tex` | present, 0 TODO |
+| 7 | `paper/tables/table2.tex` | present, 2 TODO (ResNet Balanced, section 7) |
 | 8 | `paper/tables/table3.tex` | present, 0 TODO |
 | 9 | `paper/figs/fig1_method.pdf` | present, vector |
 | 10 | `paper/figs/fig2_pred_vs_true.pdf` | present, vector |
@@ -360,16 +360,29 @@ PTB-XL it is not (section 7).
 
 ## 7. Table 2 — PTB-XL age prediction
 
-MAE in years. `fixed` protocol — the official 954-record test split, clean. 5 seeds.
+MAE in years. 5 seeds. Every column is the clean `fixed` protocol — the official
+954-record test split — **except Balanced**, which is the pre-existing definition:
+MAE on the resampled near-uniform `dir` test set, and therefore leaky (section 3).
 
-| Model | < 30 | 30–60 | ≥ 60 | Natural | Band-macro | GM |
-|---|---|---|---|---|---|---|
-| ResNet (vanilla) | 8.533 ± 0.215 | **6.784 ± 0.169** | 8.244 ± 0.558 | 7.477 ± 0.085 | 7.854 ± 0.097 | 4.863 ± 0.081 |
-| ResNet + RankSim + ConR | 8.399 ± 0.504 | 6.847 ± 0.174 | 8.425 ± 0.317 | 7.551 ± 0.138 | 7.890 ± 0.123 | 4.905 ± 0.110 |
-| E2 + stock TabPFN-2.5 | 7.659 ± 0.013 | 7.246 ± 0.006 | 7.628 ± 0.010 | 7.421 ± 0.003 | 7.511 ± 0.006 | 4.728 ± 0.015 |
-| E2 + Gaussian TabPFN-2.5 *(see 7.3)* | 7.663 ± 0.017 | 7.244 ± 0.006 | 7.629 ± 0.010 | 7.421 ± 0.003 | 7.512 ± 0.007 | 4.731 ± 0.014 |
-| E3 + stock TabICL | 7.600 ± 0.020 | 7.152 ± 0.005 | 7.601 ± 0.006 | **7.353 ± 0.002** | 7.451 ± 0.005 | **4.716 ± 0.038** |
-| E3 + Gaussian TabICL | **7.059 ± 0.053** | 7.849 ± 0.061 | **7.342 ± 0.053** | 7.585 ± 0.017 | **7.417 ± 0.017** | 4.903 ± 0.058 |
+| Model | < 30 | 30–60 | ≥ 60 | Natural | Balanced | Band-macro | GM |
+|---|---|---|---|---|---|---|---|
+| ResNet (vanilla) | 8.533 ± 0.215 | **6.784 ± 0.169** | 8.244 ± 0.558 | 7.477 ± 0.085 | *TODO* | 7.854 ± 0.097 | 4.863 ± 0.081 |
+| ResNet + RankSim + ConR | 8.399 ± 0.504 | 6.847 ± 0.174 | 8.425 ± 0.317 | 7.551 ± 0.138 | *TODO* | 7.890 ± 0.123 | 4.905 ± 0.110 |
+| E2 + stock TabPFN-2.5 | 7.659 ± 0.013 | 7.246 ± 0.006 | 7.628 ± 0.010 | 7.421 ± 0.003 | 7.280 ± 0.084 | 7.511 ± 0.006 | 4.728 ± 0.015 |
+| E2 + Gaussian TabPFN-2.5 *(see 7.3)* | 7.663 ± 0.017 | 7.244 ± 0.006 | 7.629 ± 0.010 | 7.421 ± 0.003 | **6.872 ± 0.097** | 7.512 ± 0.007 | 4.731 ± 0.014 |
+| E3 + stock TabICL | 7.600 ± 0.020 | 7.152 ± 0.005 | 7.601 ± 0.006 | **7.353 ± 0.002** | 7.152 ± 0.090 | 7.451 ± 0.005 | **4.716 ± 0.038** |
+| E3 + Gaussian TabICL | **7.059 ± 0.053** | 7.849 ± 0.061 | **7.342 ± 0.053** | 7.585 ± 0.017 | 7.042 ± 0.120 | **7.417 ± 0.017** | 4.903 ± 0.058 |
+
+**The two Balanced cells marked `TODO` cannot be filled from saved predictions.** The
+`dir` split is defined over the 9483-row embedding table, and the ResNet baselines
+were only ever run on the official 954-record test split, so no ResNet predictions
+exist for the remaining records. Filling them needs a fresh inference pass over all
+9483 records with the five Task A checkpoints — and the result would be leaky in
+exactly the way section 3 describes, since the ResNet trained on 7566 of them.
+
+**The best Balanced value, 6.872, is the row that section 7.3 shows is the
+un-fine-tuned model on the clean split.** The Balanced column is the only place in
+this table where Gaussian TabPFN appears to beat stock, and it is the leaky one.
 
 ### 7.1 The in-context stack beats the convolutional baseline at the tails only
 

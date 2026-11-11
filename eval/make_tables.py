@@ -186,15 +186,33 @@ T2_ROWS = [
 ]
 
 
+# Plan section 4 specifies Table 2's columns as <30 / 30-60 / >=60 / Natural /
+# Balanced / GM, and plan section 1 additionally requires band-macro. "Balanced" is
+# the pre-existing definition: MAE on the resampled near-uniform `dir` test set. It
+# is therefore the one column read from a DIFFERENT protocol than the rest of the
+# row, which is why each column carries its own protocol here.
+T2_COLS = [
+    (r"$<$30",       "fixed", "mae_young"),
+    (r"30--60",      "fixed", "mae_middle"),
+    (r"$\geq$60",    "fixed", "mae_old"),
+    ("Natural",      "fixed", "mae"),
+    ("Balanced",     "dir",   "mae"),
+    ("Band-macro",   "fixed", "band_macro"),
+    ("GM",           "fixed", "gm"),
+]
+
+
 def table2(df) -> None:
-    metrics = ["mae_young", "mae_middle", "mae_old", "mae", "band_macro", "gm"]
-    raw = {m: [cell(df, ds, "fixed", arm, m) for _, ds, arm in T2_ROWS]
-           for m in metrics}
-    cols = {m: bold_best([fmt(v, 3) for v in raw[m]], raw[m]) for m in metrics}
-    body = [r"\begin{tabular}{lcccccc}", r"\toprule",
-            r"& $<$30 & 30--60 & $\geq$60 & Natural & Band-macro & GM \\", r"\midrule"]
+    # The ResNet baselines were only ever evaluated on the official 954-record test
+    # split, so they have no `dir` predictions and their Balanced cells come out TODO.
+    raw = [[cell(df, ds, proto, arm, m) for _, ds, arm in T2_ROWS]
+           for _, proto, m in T2_COLS]
+    cols = [bold_best([fmt(v, 3) for v in col], col) for col in raw]
+    spec = "l" + "c" * len(T2_COLS)
+    head = " & ".join([""] + [h for h, _, _ in T2_COLS]) + r" \\"
+    body = [r"\begin{tabular}{" + spec + "}", r"\toprule", head, r"\midrule"]
     for i, (label, _, _) in enumerate(T2_ROWS):
-        body.append(" & ".join([label] + [cols[m][i] for m in metrics]) + r" \\")
+        body.append(" & ".join([label] + [c[i] for c in cols]) + r" \\")
     body += [r"\bottomrule", r"\end{tabular}"]
     write("table2.tex", "\n".join(body) + "\n")
 
